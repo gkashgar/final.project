@@ -3,7 +3,7 @@ The sequences are from sorted skin cells that were taken from mouse wound margin
 
 
 1.	Once logged in, I transferred to an interactive node on School of Medicine (SOM)
-$ qrsh -q som -pe openmp 4-64
+$qrsh -q som -pe openmp 4-64
 2.	Make a directory for the final project
 
 $ cd  /data/users/gkashgar
@@ -75,21 +75,20 @@ $ samtools sort –n accepted_hits.bam accepted_hits.nsorted &
 $ samtools sort accepted_hits.bam accepted_hits.sorted &
 $ samtools index accepted_hits.sorted.bam
 
+###R Studio 
+
 16.	Generate a count matrix using HTseq-count.
 
 $ module load enthought_python/7.3.2
 $ htseq-count -f bam –s no wt1_un _thout/accepted_hits.sorted.bam mm10.gtf > htseq_out/ wt1_un.counts &
 $ htseq-count -f bam –s no wt1_w _thout/accepted_hits.nsorted.bam mm10.gtf > htseq_out/ wt1_w.counts &
 
-17.	Making a heatmap of the count matrix with DESeq2.
 
 $ module load R/3.2.2
    $ R
    source(“http://bioconductor.org/biocLite.R”)
   it might ask if its okay to install so type Y
   biocLite(“DESeq2”)
-  if it asks if you want to use a personal library type Y
-  if updated is needed type n
    library(DESeq2)
    outputPrefix <- “d1_DESeq2”
    directory <- “/som/gkashgar/rna-seq/24h/d1”
@@ -97,17 +96,14 @@ $ module load R/3.2.2
   condition_d1 <- factor(substr(ATR_d1, 1, 2))
    table_d1 <- data.frame(sampleName=ATR_d1, fileName=ATR_d1, condition=condition_d1)
    table_d1
-   allows you to view your table to verify that you set it up correctly.
    dds_d1 <- DESeqDataSetFromHTSeqCount(sampleTable=table_d1, directory=directory, design=~condition)
   colData(dds_d1)$condition <- factor(colData(dds_d1)$condition, levels = c(‘un’,‘w”))
- following step is the gut of DESeq2 analysis
+ $following step is the gut of DESeq2 analysis
   >ddsc1c2 <- DESeq(dds_d1)
    results_d1 <- results(ddsd1)
   order results by padj value (most significant to least)
    results_d1= subset(results_d1, padj<0.05)
    results_d1 <- results_d1[order(results_d1$padj), ]
- can view the results with the following command (optional)
-  should see DataFrame of baseMean, log2Foldchange, stat, pval, padj
    head (results_d1)
  because this data was analyzed with count values and not with tuxedo(cuffdiff), we need to save these results and normalized reads to csv
   resultsdata_d1 <-merge(as.data.frame(results_d1), as.data.frame(counts(ddsd1,normalized =TRUE)), by=‘row.names’, sort = FALSE)
